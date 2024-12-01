@@ -5,19 +5,19 @@ pub fn get_input_as_string(demo_input: &bool) -> String {
     fs::read_to_string(path).expect("Something went wrong reading the file")
 }
 
-pub fn assert_and_print<T>(answer: &T, expected_vals: &(T, Option<T>), demo_input: &bool) -> ()
+pub fn assert_and_print<T>(answer: &T, expected_vals: (T, T), demo_input: &bool) -> ()
 where
     T: Debug,
     T: PartialEq,
 {
     let expected = if *demo_input {
-        &expected_vals.0
+        expected_vals.0
     } else {
-        expected_vals.1.as_ref().unwrap()
+        expected_vals.1
     };
 
     assert!(
-        *answer == *expected,
+        *answer == expected,
         "expected: {:?} got: {:?}",
         expected,
         answer

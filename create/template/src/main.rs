@@ -19,5 +19,5 @@ fn main() {
 
     let parsed = parse(&demo_input);
     let part_one_answer = part_one(&parsed);
-    assert_and_print(&part_one_answer, &(1, None), &demo_input);
+    assert_and_print(&part_one_answer, (1, 1), &demo_input);
 }
