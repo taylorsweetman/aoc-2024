@@ -16,8 +16,8 @@ fn part_one(parsed: &Parsed) -> i32 {
 
 fn main() {
     let demo_input = true;
-
     let parsed = parse(&demo_input);
+
     let part_one_answer = part_one(&parsed);
     assert_and_print(&part_one_answer, (1, 1), &demo_input);
 }
