@@ -12,7 +12,7 @@ fn parse(demo_input: &bool) -> Parsed {
         .collect()
 }
 
-fn get_failing_level_index(report: &Vec<u32>) -> Option<usize> {
+fn get_failing_level_index(report: &[u32]) -> Option<usize> {
     let mut up_count = 0;
     let mut down_count = 0;
 
@@ -44,7 +44,7 @@ fn get_failing_level_index(report: &Vec<u32>) -> Option<usize> {
     None
 }
 
-fn remove_at_idx(v: &Vec<u32>, idx: &usize) -> Vec<u32> {
+fn remove_at_idx(v: &[u32], idx: &usize) -> Vec<u32> {
     v.iter()
         .enumerate()
         .filter(|(i, _)| i != idx)
@@ -52,7 +52,7 @@ fn remove_at_idx(v: &Vec<u32>, idx: &usize) -> Vec<u32> {
         .collect()
 }
 
-fn report_is_safe(report: &Vec<u32>, dampen_once: bool) -> bool {
+fn report_is_safe(report: &[u32], dampen_once: bool) -> bool {
     let failing_index = get_failing_level_index(report);
 
     if failing_index.is_none() {
@@ -83,12 +83,12 @@ fn report_is_safe(report: &Vec<u32>, dampen_once: bool) -> bool {
 }
 
 fn part_one(parsed: &Parsed) -> usize {
-    let safe_report_count = parsed.iter().filter(|r| report_is_safe(*r, false)).count();
+    let safe_report_count = parsed.iter().filter(|r| report_is_safe(r, false)).count();
     safe_report_count
 }
 
 fn part_two(parsed: &Parsed) -> usize {
-    let safe_report_count = parsed.iter().filter(|r| report_is_safe(*r, true)).count();
+    let safe_report_count = parsed.iter().filter(|r| report_is_safe(r, true)).count();
     safe_report_count
 }
 

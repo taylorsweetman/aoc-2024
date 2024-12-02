@@ -12,7 +12,7 @@ fn parse(demo_input: &bool) -> Parsed {
         .split('\n')
         .map(|line| {
             let nums: Vec<i32> = line.split("   ").map(|s| s.parse().unwrap()).collect();
-            return (nums[0], nums[1]);
+            (nums[0], nums[1])
         })
         .collect()
 }
