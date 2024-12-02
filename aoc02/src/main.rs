@@ -12,35 +12,83 @@ fn parse(demo_input: &bool) -> Parsed {
         .collect()
 }
 
-fn report_is_safe(report: &Vec<u32>) -> bool {
-    let mut is_increasing: Option<bool> = None;
+fn get_failing_level_index(report: &Vec<u32>) -> Option<usize> {
+    let mut up_count = 0;
+    let mut down_count = 0;
 
     for i in 0..(report.len() - 1) {
         let current_level = report[i];
         let next_level = report[i + 1];
 
-        if is_increasing.is_none() {
-            is_increasing = Some(next_level > current_level);
-        }
-
-        if is_increasing.unwrap() && current_level >= next_level {
-            return false;
-        }
-
-        if !is_increasing.unwrap() && next_level >= current_level {
-            return false;
+        if current_level == next_level {
+            return Some(i);
         }
 
         if next_level.abs_diff(current_level) > 3 {
-            return false;
+            return Some(i);
+        }
+
+        if next_level > current_level {
+            up_count += 1;
+        }
+
+        if current_level > next_level {
+            down_count += 1;
+        }
+
+        if up_count != i + 1 && down_count != i + 1 {
+            return Some(i);
         }
     }
 
-    true
+    None
+}
+
+fn remove_at_idx(v: &Vec<u32>, idx: &usize) -> Vec<u32> {
+    v.iter()
+        .enumerate()
+        .filter(|(i, _)| i != idx)
+        .map(|(_, val)| *val)
+        .collect()
+}
+
+fn report_is_safe(report: &Vec<u32>, dampen_once: bool) -> bool {
+    let failing_index = get_failing_level_index(report);
+
+    if failing_index.is_none() {
+        return true;
+    }
+
+    if dampen_once {
+        let failing_index_val = failing_index.unwrap();
+
+        let report_is_safe_with_idx_removed =
+            report_is_safe(&remove_at_idx(report, &failing_index_val), false);
+        let report_is_safe_with_next_idx_removed =
+            report_is_safe(&remove_at_idx(report, &(failing_index_val + 1)), false);
+
+        if failing_index_val != 1 {
+            return report_is_safe_with_idx_removed || report_is_safe_with_next_idx_removed;
+        } else {
+            let report_is_safe_with_first_level_removed =
+                report_is_safe(&remove_at_idx(report, &0), false);
+
+            return report_is_safe_with_idx_removed
+                || report_is_safe_with_next_idx_removed
+                || report_is_safe_with_first_level_removed;
+        }
+    }
+
+    false
 }
 
 fn part_one(parsed: &Parsed) -> usize {
-    let safe_report_count = parsed.iter().filter(|r| report_is_safe(*r)).count();
+    let safe_report_count = parsed.iter().filter(|r| report_is_safe(*r, false)).count();
+    safe_report_count
+}
+
+fn part_two(parsed: &Parsed) -> usize {
+    let safe_report_count = parsed.iter().filter(|r| report_is_safe(*r, true)).count();
     safe_report_count
 }
 
@@ -50,4 +98,7 @@ fn main() {
 
     let part_one_answer = part_one(&parsed);
     assert_and_print(&part_one_answer, (2, 663), &demo_input);
+
+    let part_two_answer = part_two(&parsed);
+    assert_and_print(&part_two_answer, (4, 692), &demo_input);
 }
