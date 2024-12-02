@@ -43,12 +43,10 @@ fn part_two(parsed: &Parsed) -> i32 {
 
     let right_count_map: HashMap<i32, i32> =
         right.iter().fold(HashMap::new(), |mut acc, current| {
-            if acc.contains_key(current) {
-                let current_count = acc.get(current).unwrap();
-                acc.insert(*current, current_count + 1);
-            } else {
-                acc.insert(*current, 1);
-            }
+            acc.entry(*current)
+                .and_modify(|count| *count += 1)
+                .or_insert(1);
+
             acc
         });
 
