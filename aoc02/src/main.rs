@@ -7,8 +7,8 @@ type Parsed = Vec<Vec<u32>>;
 fn parse(demo_input: &bool) -> Parsed {
     let file_contents = get_input_as_string(demo_input);
     file_contents
-        .split('\n')
-        .map(|s| s.split(' ').map(|n| n.parse().unwrap()).collect())
+        .lines()
+        .map(|s| s.split_whitespace().map(|n| n.parse().unwrap()).collect())
         .collect()
 }
 
