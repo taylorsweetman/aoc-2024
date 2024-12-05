@@ -1,6 +1,9 @@
 mod my_lib;
 
-use std::collections::{HashMap, HashSet};
+use std::{
+    cmp::Ordering,
+    collections::{HashMap, HashSet},
+};
 
 use my_lib::{assert_and_print, get_input_as_string};
 
@@ -57,21 +60,23 @@ fn parse(demo_input: &bool) -> Parsed {
     )
 }
 
-fn is_valid_update(map: &PageOrderMap, update: &[u16]) -> bool {
-    let mut seen_pages: HashSet<u16> = HashSet::with_capacity(update.len());
+fn get_page_order(map: &PageOrderMap, a_page: &u16, b_page: &u16) -> Ordering {
+    let empty_set = HashSet::new();
+    let comes_before_a = map.get(a_page).unwrap_or(&empty_set);
+    let comes_before_b = map.get(b_page).unwrap_or(&empty_set);
 
-    // TODO: this executes longer than required once it find a false condition
-    update.iter().fold(true, |acc, page| {
-        let new_set = HashSet::new();
-        let cannot_appear_yet = map.get(page).unwrap_or(&new_set);
-        if seen_pages.intersection(cannot_appear_yet).count() != 0 {
-            return false;
-        }
+    if comes_before_a.contains(b_page) {
+        return Ordering::Greater;
+    }
+    if comes_before_b.contains(a_page) {
+        return Ordering::Less;
+    }
 
-        seen_pages.insert(*page);
+    Ordering::Equal
+}
 
-        acc
-    })
+fn in_correct_order(map: &PageOrderMap, a_page: &u16, b_page: &u16) -> bool {
+    !matches!(get_page_order(map, a_page, b_page), Ordering::Less)
 }
 
 fn find_middle_element(elems: &[u16]) -> u16 {
@@ -83,8 +88,24 @@ fn part_one(parsed: &Parsed) -> u16 {
     let (map, updates) = parsed;
     updates
         .iter()
-        .filter(|u| is_valid_update(map, u))
+        .filter(|u| u.is_sorted_by(|a, b| in_correct_order(map, a, b)))
         .map(|u| find_middle_element(u))
+        .sum()
+}
+
+fn part_two(parsed: &Parsed) -> u16 {
+    let (map, updates) = parsed;
+    let mut updates = updates.clone();
+
+    updates
+        .iter_mut()
+        .filter(|u| !u.is_sorted_by(|a, b| in_correct_order(map, a, b)))
+        .map(|u| {
+            find_middle_element({
+                u.sort_by(|a, b| get_page_order(map, a, b));
+                u
+            })
+        })
         .sum()
 }
 
@@ -94,4 +115,7 @@ fn main() {
 
     let part_one_answer = part_one(&parsed);
     assert_and_print(&part_one_answer, (143, 5_108), &demo_input);
+
+    let part_two_answer = part_two(&parsed);
+    assert_and_print(&part_two_answer, (123, 7_380), &demo_input);
 }
