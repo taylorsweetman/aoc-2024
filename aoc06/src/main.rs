@@ -111,7 +111,7 @@ fn guard_loops(
     )
 }
 
-fn part_one(parsed: &Parsed) -> usize {
+fn part_one(parsed: &Parsed) -> (usize, HashSet<CoOrd>) {
     let mut traversed_squares: HashMap<CoOrd, Dir> =
         [(parsed.0, Dir::Up)].iter().cloned().collect();
     guard_loops(
@@ -121,11 +121,13 @@ fn part_one(parsed: &Parsed) -> usize {
         &parsed.1,
         &parsed.2,
     );
-    traversed_squares.len()
+    (
+        traversed_squares.len(),
+        traversed_squares.keys().cloned().collect(),
+    )
 }
 
-// BRUTE FORCE ALERT -- don't judge me, I'll learn graphs one day...
-fn part_two(parsed: &Parsed) -> usize {
+fn part_two(parsed: &Parsed, original_path: &HashSet<CoOrd>) -> usize {
     let (guard_loc, obstacle_locs, max_vals) = parsed;
     let (max_x, max_y) = max_vals;
     let mut count = 0_usize;
@@ -134,7 +136,7 @@ fn part_two(parsed: &Parsed) -> usize {
         for y in 0..(max_y + 1) {
             let new_obstacle_loc = (x, y);
 
-            if !obstacle_locs.contains(&new_obstacle_loc) {
+            if original_path.contains(&new_obstacle_loc) {
                 let mut traversed_squares: HashMap<CoOrd, Dir> =
                     [(parsed.0, Dir::Up)].iter().cloned().collect();
                 let mut obstacle_locs = obstacle_locs.clone();
@@ -160,9 +162,9 @@ fn main() {
     let demo_input = false;
     let parsed = parse(&demo_input);
 
-    let part_one_answer = part_one(&parsed);
+    let (part_one_answer, original_path) = part_one(&parsed);
     assert_and_print(&part_one_answer, (41, 5_331), &demo_input);
 
-    let part_two_answer = part_two(&parsed);
+    let part_two_answer = part_two(&parsed, &original_path);
     assert_and_print(&part_two_answer, (6, 1_812), &demo_input);
 }
