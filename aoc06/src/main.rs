@@ -1,9 +1,10 @@
 mod my_lib;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use my_lib::{assert_and_print, get_input_as_string};
 
+#[derive(Clone, PartialEq)]
 enum Dir {
     Up,
     Down,
@@ -69,23 +70,28 @@ fn guard_will_leave(guard_loc: &CoOrd, max_vals: &CoOrd, current_dir: &Dir) -> b
     }
 }
 
-fn update_traversed_squares(
-    traversed_squares: &mut HashSet<CoOrd>,
+fn guard_loops(
+    traversed_squares: &mut HashMap<CoOrd, Dir>,
     guard_loc: &CoOrd,
     current_dir: &Dir,
     obstacle_locs: &HashSet<CoOrd>,
     max_vals: &CoOrd,
-) {
-    // base case
+) -> bool {
+    // base case, guard exits
     if guard_will_leave(guard_loc, max_vals, current_dir) {
-        return;
+        return false;
     }
 
     let potential_new_loc = move_guard(current_dir, guard_loc);
 
+    // base case, guard has already visited this square in this direction
+    if traversed_squares.get(&potential_new_loc) == Some(current_dir) {
+        return true;
+    }
+
     // guard would hit obstacle case
     if obstacle_locs.contains(&potential_new_loc) {
-        return update_traversed_squares(
+        return guard_loops(
             traversed_squares,
             guard_loc,
             &rotate_guard(current_dir),
@@ -95,8 +101,8 @@ fn update_traversed_squares(
     }
 
     // guard moves case
-    traversed_squares.insert(potential_new_loc);
-    update_traversed_squares(
+    traversed_squares.insert(potential_new_loc, current_dir.clone());
+    guard_loops(
         traversed_squares,
         &potential_new_loc,
         current_dir,
@@ -106,8 +112,9 @@ fn update_traversed_squares(
 }
 
 fn part_one(parsed: &Parsed) -> usize {
-    let mut traversed_squares: HashSet<CoOrd> = HashSet::from_iter([parsed.0].iter().cloned());
-    update_traversed_squares(
+    let mut traversed_squares: HashMap<CoOrd, Dir> =
+        [(parsed.0, Dir::Up)].iter().cloned().collect();
+    guard_loops(
         &mut traversed_squares,
         &parsed.0,
         &Dir::Up,
@@ -117,10 +124,45 @@ fn part_one(parsed: &Parsed) -> usize {
     traversed_squares.len()
 }
 
+// BRUTE FORCE ALERT -- don't judge me, I'll learn graphs one day...
+fn part_two(parsed: &Parsed) -> usize {
+    let (guard_loc, obstacle_locs, max_vals) = parsed;
+    let (max_x, max_y) = max_vals;
+    let mut count = 0_usize;
+
+    for x in 0..(max_x + 1) {
+        for y in 0..(max_y + 1) {
+            let new_obstacle_loc = (x, y);
+
+            if !obstacle_locs.contains(&new_obstacle_loc) {
+                let mut traversed_squares: HashMap<CoOrd, Dir> =
+                    [(parsed.0, Dir::Up)].iter().cloned().collect();
+                let mut obstacle_locs = obstacle_locs.clone();
+                obstacle_locs.insert(new_obstacle_loc);
+
+                if guard_loops(
+                    &mut traversed_squares,
+                    guard_loc,
+                    &Dir::Up,
+                    &obstacle_locs,
+                    max_vals,
+                ) {
+                    count += 1;
+                }
+            }
+        }
+    }
+
+    count
+}
+
 fn main() {
     let demo_input = false;
     let parsed = parse(&demo_input);
 
     let part_one_answer = part_one(&parsed);
-    assert_and_print(&part_one_answer, (41, 5331), &demo_input);
+    assert_and_print(&part_one_answer, (41, 5_331), &demo_input);
+
+    let part_two_answer = part_two(&parsed);
+    assert_and_print(&part_two_answer, (6, 1_812), &demo_input);
 }
